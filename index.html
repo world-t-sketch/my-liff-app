@@ -1,6 +1,106 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFFテスト</title>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 24px;
+      background: #f7f7f7;
+    }
+
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #06c755;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
 <body>
-<h1>LIFFテスト</h1>
+
+  <div class="box">
+
+    <h2>LIFFテスト</h2>
+
+    <input type="text" id="name">
+
+    <button onclick="showName()">送信</button>
+
+    <div id="result"></div>
+
+  </div>
+
+  <script>
+
+    async function initLIFF() {
+
+      try {
+
+        await liff.init({
+          liffId: "2010148048-G6yKJqoU",
+          withLoginOnExternalBrowser: true
+        });
+
+        if (!liff.isLoggedIn()) {
+
+          liff.login({
+            redirectUri: window.location.href
+          });
+
+          return;
+        }
+
+        const profile = await liff.getProfile();
+
+        document.getElementById("name").value =
+          profile.displayName;
+
+      } catch (error) {
+
+        document.getElementById("result").innerText =
+          error.message;
+
+      }
+    }
+
+    function showName() {
+
+      const name =
+        document.getElementById("name").value;
+
+      document.getElementById("result").innerText =
+        name + "さん、こんにちは！";
+    }
+
+    initLIFF();
+
+  </script>
+
 </body>
 </html>
