@@ -1,106 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIFFテスト</title>
-
+  <title>LIFFアプリ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 24px;
-      background: #f7f7f7;
-    }
-
-    .box {
-      background: white;
-      padding: 20px;
-      border-radius: 16px;
-    }
-
-    input, button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    button {
-      background: #06c755;
-      color: white;
-      border: none;
-      border-radius: 10px;
-    }
-
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-    }
-  </style>
 </head>
+<body style="font-family: sans-serif; padding: 24px; background: #f7f7f7;">
 
-<body>
-
-  <div class="box">
-
-    <h2>LIFFテスト</h2>
-
-    <input type="text" id="name">
-
-    <button onclick="showName()">送信</button>
-
-    <div id="result"></div>
-
+  <div style="background: white; padding: 20px; border-radius: 16px; text-align: center;">
+    <h2>LIFF同期テスト</h2>
+    <p id="status">LIFF初期化中...</p>
+    <h1 id="welcome"></h1>
   </div>
 
   <script>
+    // ⚠️【あなたの環境に合わせて書き換えてください】⚠️
+    const LIFF_ID = "2010148048-G6yKJqoU"; 
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycby2fE29QTvfT4rrB533G9PbiUYv9z1vk8pIoRedXLfl72tkNPcJj5OfrgrWeiLnfJh5Bw/exec"; 
 
-    async function initLIFF() {
+    async function initializeLiff() {
+      const statusEl = document.getElementById("status");
+      const welcomeEl = document.getElementById("welcome");
 
       try {
-
         await liff.init({
-          liffId: "2010148048-G6yKJqoU",
+          liffId: LIFF_ID,
           withLoginOnExternalBrowser: true
         });
 
         if (!liff.isLoggedIn()) {
-
-          liff.login({
-            redirectUri: window.location.href
-          });
-
-          return;
+          liff.login({ redirectUri: window.location.href });
+          return; 
         }
 
+        statusEl.textContent = "ユーザー情報取得中...";
         const profile = await liff.getProfile();
+        welcomeEl.textContent = `こんにちは、${profile.displayName} さん！`;
 
-        document.getElementById("name").value =
-          profile.displayName;
+        // 🚀 ここで裏側からGAS（API）にデータを送信します！
+        statusEl.textContent = "データをスプレッドシートに同期中...";
+        
+        const response = await fetch(GAS_API_URL, {
+          method: "POST",
+          mode: "no-cors", // GASのリダイレクトバグを完全に回避する魔法の設定
+          headers: {
+            "Content-Type": "text/plain" 
+          },
+          body: JSON.stringify({
+            userId: profile.userId,
+            displayName: profile.displayName,
+            pictureUrl: profile.pictureUrl
+          })
+        });
+
+        if (response) {
+          statusEl.textContent = "同期が完了しました！シートを確認してください。";
+        }
 
       } catch (error) {
-
-        document.getElementById("result").innerText =
-          error.message;
-
+        console.error("エラー:", error);
+        statusEl.textContent = "エラーが発生しました。";
       }
     }
 
-    function showName() {
-
-      const name =
-        document.getElementById("name").value;
-
-      document.getElementById("result").innerText =
-        name + "さん、こんにちは！";
-    }
-
-    initLIFF();
-
+    window.addEventListener("DOMContentLoaded", initializeLiff);
   </script>
-
 </body>
 </html>
